@@ -1,8 +1,62 @@
 import React from 'react';
 
+const SECURITY_CODE = 'paradigma';
+
 function UseState({ name }) {
-    const [error, setError] = React.useState(false); // esta constante define el estado de error, la funcion para cambiar su estado, y por defecto es false
-    const [loading, setLoading] = React.useState(false); // esta constante define el estado de loading y la funcion para cambiar su estado
+    const [state, setState] = React.useState({
+        value: '',
+        error: false,
+        loading: false,
+        deleted: false,
+        confirmed: false,
+    });
+
+    const onConfirm = () => {
+        setState({
+            ...state, // esto nos mantiene todos los estados de State, y cambia sólo la declarada, pero no elimina el resto
+            error: false,
+            loading: false,
+            confirmed: true,
+        });
+    };
+
+    const onError = () => {
+        setState({
+            ...state,
+            error: true,
+            loading: false,
+        });
+    };
+
+    const onWrite = (newValue) => {
+        setState({
+            ...state,
+            value: newValue,
+        });
+    };
+
+    const onCheck = () => {
+        setState({
+            ...state,
+            loading: true,
+        });
+    };
+
+    const onDelete = () => {
+        setState({
+            ...state,
+            deleted: true,
+        });
+    };
+
+    const onReset = () => {
+        setState({
+            ...state,
+            confirmed: false,
+            deleted: false,
+            value: '',
+        })
+    }
 
     // el useEffect simula la consulta al backend: 
     // hace un efecto (primer parámetro) que se va a consultar cada vez que cambie el estado de loading (segundo parámetro)
@@ -11,39 +65,89 @@ function UseState({ name }) {
     React.useEffect(() => {
         console.log('Empezando el efecto');
 
-        if (!!loading) {
+        if (!!state.loading) {
             setTimeout(() => {
                 console.log('Haciendo la validación');
-    
-                setLoading(false);
-    
+
+                if (state.value === SECURITY_CODE) {
+                    onConfirm();
+                } else {
+                    onError();
+                }
+
                 console.log('Terminando la validación');
             }, 3000);
         }
 
         console.log('Terminando el efecto');
-    }, [loading]);
+    }, [state.loading]);
 
-    return (
-        <div>
-            <h2>Eliminar {name}</h2>
+    if (!state.deleted && !state.confirmed) {
+        return (
+            <div>
+                <h2>Eliminar {name}</h2>
+    
+                <p>Por favor, introduce el código de seguridad.</p>
+    
+                {(state.error && !state.loading) && ( // en el caso de que haya un error (error == true) y que no estemos cargando, entonces, renderiza nuestro párrafo
+                    <p>Error: el código es incorrecto</p>
+                )}
+    
+                {state.loading && (
+                    <p>Cargando...</p>
+                )}
+    
+                <input 
+                    placeholder="Código de seguridad"
+                    value={state.value}
+                    onChange={(event) => {
+                        onWrite(event.target.value);
+                    }}
+                />
+                <button
+                    onClick={() => {
+                        onCheck();
+                    }}
+                >Comprobar</button>
+            </div>
+        );
+    } else if (!!state.confirmed && !state.deleted) {
+        return (
+            <React.Fragment>
+                <p>¿Seguro que quieres eliminar el archivo?</p>
 
-            <p>Por favor, introduce el código de seguridad.</p>
+                <button
+                    onClick={() => {
+                        onDelete();
+                    }}
+                >
+                    Eliminar
+                </button>
 
-            {error && ( // en el caso de que haya un error (error == true), entonces, renderiza nuestro párrafo
-                <p>Error: el código es incorrecto</p>
-            )}
+                <button
+                    onClick={() => {
+                        onReset();
+                    }}
+                >
+                    Cancelar
+                </button>
+            </React.Fragment>
+        );
+    } else {
+        return (
+            <React.Fragment>
+                <p>Eliminado con éxito</p>
 
-            {loading && (
-                <p>Cargando...</p>
-            )}
-
-            <input placeholder="Código de seguridad" />
-            <button
-                onClick={() => setLoading(true)} // Nuestro botón lanza un evento al hacer click, cambia el estado al opuesto (true - false)
-            >Comprobar</button>
-        </div>
-    );
+                <button
+                    onClick={() => {
+                        onReset();
+                    }}
+                >
+                    Deshacer
+                </button>
+            </React.Fragment>
+        )
+    }
 }
 
 export { UseState };
