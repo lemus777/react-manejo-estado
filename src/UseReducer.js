@@ -4,6 +4,13 @@ const SECURITY_CODE = 'paradigma';
 
 function UseReducer({ name }) {
     const [state, dispatch] = React.useReducer(reducer, initialState);
+    
+    const onConfirm = () => dispatch({ type: actionTypes.confirm });
+    const onError = () => dispatch({ type: actionTypes.error });
+    const onWrite = ({ target: { value } }) => dispatch({ type: actionTypes.write, payload: value });
+    const onCheck = () => dispatch({ type: actionTypes.check });
+    const onDelete = () => dispatch({ type: actionTypes.delete });
+    const onReset = () => dispatch({ type: actionTypes.reset });
 
     // el useEffect simula la consulta al backend: 
     // hace un efecto (primer parámetro) que se va a consultar cada vez que cambie el estado de loading (segundo parámetro)
@@ -17,9 +24,9 @@ function UseReducer({ name }) {
                 console.log('Haciendo la validación');
 
                 if (state.value === SECURITY_CODE) {
-                    dispatch({ type: 'CONFIRM' });
+                    onConfirm();
                 } else {
-                    dispatch({ type: 'ERROR' });
+                    onError();
                 }
 
                 console.log('Terminando la validación');
@@ -47,17 +54,11 @@ function UseReducer({ name }) {
                 <input 
                     placeholder="Código de seguridad"
                     value={state.value}
-                    onChange={(event) => {
-                        dispatch({ type: 'WRITE', payload: event.target.value })
-                        // onWrite(event.target.value);
-                    }}
+                    onChange={onWrite}
                 />
-                <button
-                    onClick={() => {
-                        dispatch({ type: 'CHECK' })
-                        // onCheck();
-                    }}
-                >Comprobar</button>
+                <button onClick={onCheck}>
+                    Comprobar
+                </button>
             </div>
         );
     } else if (!!state.confirmed && !state.deleted) {
@@ -65,21 +66,11 @@ function UseReducer({ name }) {
             <React.Fragment>
                 <p>¿Seguro que quieres eliminar el archivo?</p>
 
-                <button
-                    onClick={() => {
-                        dispatch({ type: 'DELETE' })
-                        // onDelete();
-                    }}
-                >
+                <button onClick={onDelete}>
                     Eliminar
                 </button>
 
-                <button
-                    onClick={() => {
-                        dispatch({ type: 'RESET' })
-                        // onReset();
-                    }}
-                >
+                <button onClick={onReset}>
                     Cancelar
                 </button>
             </React.Fragment>
@@ -89,12 +80,7 @@ function UseReducer({ name }) {
             <React.Fragment>
                 <p>Eliminado con éxito</p>
 
-                <button
-                    onClick={() => {
-                        dispatch({ type: 'RESET' })
-                        // onReset();
-                    }}
-                >
+                <button onClick={onReset}>
                     Deshacer
                 </button>
             </React.Fragment>
@@ -110,32 +96,41 @@ const initialState = {
     confirmed: false,
 };
 
+const actionTypes = {
+    confirm: 'CONFIRM',
+    error: 'ERROR',
+    write: 'WRITE',
+    check: 'CHECK',
+    delete: 'DELETE',
+    reset: 'RESET',
+};
+
 // Tercer tipo, dividido en dos, un reducerObject con los estados y un reducer con la lógica
 const reducerObject = (state, payload) => ({
-    'CONFIRM': {
+    [actionTypes.confirm]: {
         ...state, // esto nos mantiene todos los estados de State, y cambia sólo la declarada, pero no elimina el resto
         error: false,
         loading: false,
         confirmed: true,
     },
-    'ERROR': {
+    [actionTypes.error]: {
         ...state,
         error: true,
         loading: false,
     },
-    'WRITE': {
+    [actionTypes.write]: {
         ...state,
         value: payload,
     },
-    'CHECK': {
+    [actionTypes.check]: {
         ...state,
         loading: true,
     },
-    'DELETE': {
+    [actionTypes.delete]: {
         ...state,
         deleted: true,
     },
-    'RESET': {
+    [actionTypes.reset]: {
         ...state,
         confirmed: false,
         deleted: false,

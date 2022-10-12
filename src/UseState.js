@@ -56,7 +56,7 @@ function UseState({ name }) {
             deleted: false,
             value: '',
         })
-    }
+    };
 
     // el useEffect simula la consulta al backend: 
     // hace un efecto (primer parámetro) que se va a consultar cada vez que cambie el estado de loading (segundo parámetro)
